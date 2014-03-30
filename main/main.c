@@ -77,7 +77,7 @@ char device_configuration = 0b10000100;			// device config storage
 // bit 3:
 // bit 4:
 // bit 5:
-// bit 6:
+// bit 6: trims half
 // bit 7: trims active
 	
 static uchar    idleRate;						// repeat rate for keyboards	
@@ -106,6 +106,7 @@ void correction_data_reset()
 	
 
 }
+
 
 void correction_data_load()
 {
@@ -260,16 +261,16 @@ int __attribute__((noreturn)) main(void)
 			} else {
 			device_configuration &=~(1<<6);
 		}
-				
-		if (buttons_down(1))										// set center value flag
+																		// BTN 1
+		if (buttons_held(1))										    // set center value flag
 		{
 			device_configuration |= 1<< 1;
 		}
 		
-		
-		//if (buttons_held(1))										// set correction gathering flag, when exiting set center value flag
+																		// BTN 0
+																		// set correction gathering flag, when exiting set center value flag
 		if (
-				( (bit_is_clear(device_configuration, 0)) && (buttons_held(0)) )
+				( (bit_is_clear(device_configuration, 0)) && (buttons_held(0)) )		
 				||
 				( (bit_is_set(device_configuration, 0) && (buttons_down(0))) )
 			)
@@ -283,10 +284,10 @@ int __attribute__((noreturn)) main(void)
 			device_configuration ^= 1 << 0;
 		}
 		
-		
-		if (buttons_down(2))										// reset correction data
+																	// BTN 2
+		if (buttons_held(2))										// reset correction data
 		{
-			correction_data_reset();
+			device_configuration ^= 1<<2;
 		}
 
 		//////////////////////////////////////////////////////////////////////////
@@ -328,7 +329,20 @@ int __attribute__((noreturn)) main(void)
 			PORTC |= (1<<PINC5);
 		}
 		
-		
+		if (bit_is_clear(device_configuration, 2))					// raw data on LED 123
+		{
+			PORTD |= (1<<PIND7);
+			PORTD |= (1<<PIND1);
+			PORTC |= (1<<PINC5);
+			
+		}
+		if (bit_is_set(device_configuration, 1))					// set center on LED 123
+		{
+			PORTD |= (1<<PIND7);
+			PORTD |= (1<<PIND1);
+			PORTC |= (1<<PINC5);
+			
+		}
 
 		//////////////////////////////////////////////////////////////////////////
 		//			DATA GATHERING
@@ -430,29 +444,30 @@ int __attribute__((noreturn)) main(void)
 			
 			// map data with our correction data
 			//	map ( x, in_min, in_max, out_min , out_max )
-			
-			for (i=0; i<3; i++)
+			if (bit_is_set(device_configuration, 2)) 
 			{
-				if (a2dData[i]<a2dDataMinimums[i])
+				for (i=0; i<3; i++)
 				{
-					a2dData[i] = a2dDataMinimums[i];
-				}
+					if (a2dData[i]<a2dDataMinimums[i])
+					{
+						a2dData[i] = a2dDataMinimums[i];
+					}
 
-				if (a2dData[i]>a2dDataMaximums[i])
-				{
-					a2dData[i] = a2dDataMaximums[i];
-				}
+					if (a2dData[i]>a2dDataMaximums[i])
+					{
+						a2dData[i] = a2dDataMaximums[i];
+					}
 				
-				if (a2dData[i]<a2dDataCenters[i])
-				{
-				 	a2dData[i] = map(a2dData[i], a2dDataMinimums[i], a2dDataCenters[i], 0, 4095);
-				}
-				else
-				{
-				 	a2dData[i] = map(a2dData[i], a2dDataCenters[i], a2dDataMaximums[i], 4096, 8191);
+					if (a2dData[i]<a2dDataCenters[i])
+					{
+				 		a2dData[i] = map(a2dData[i], a2dDataMinimums[i], a2dDataCenters[i], 0, 4095);
+					}
+					else
+					{
+				 		a2dData[i] = map(a2dData[i], a2dDataCenters[i], a2dDataMaximums[i], 4096, 8191);
+					}
 				}
 			}
-			
 
 
 			dataToBuffer();
