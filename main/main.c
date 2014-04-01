@@ -6,14 +6,13 @@
  * Creation Date: 2013-09
  * 
  * final build target for ATMega8
+ * V1.1 bugfix
  * Fuse setup:
  *	0xC9	hi
  *	0xEF	lo
  * 
  * 
  */
-
-// bugfix branch
 
 #define F_CPU 16000000UL
 
@@ -420,6 +419,7 @@ int __attribute__((noreturn)) main(void)
 			
 			if (bit_is_set(device_configuration, 7))				// add trim information
 			{
+				/*
 				for (uchar i=0; i<3; i++)
 				{
 // 					if (a2dData[i+3]<-a2dData[i]+0x0800)
@@ -429,16 +429,29 @@ int __attribute__((noreturn)) main(void)
 // 					if (a2dData[i+3]>-a2dData[i]+0x0fff+0x0800)
 // 					{
 // 						a2dData[i+3] = -a2dData[i]+0x0fff+0x0800;
-// 					}
+// 					} 
+					
+					
 					if (bit_is_set(device_configuration, 6))
 					{
-						a2dData[i] -= (2*(a2dData[i+3]-2048));
+						a2dData[i] -= mult*(1*(a2dData[i+3]-2048));
 					} 
 					else
 					{
-						a2dData[i] -= (1*(a2dData[i+3]-2048));
+						a2dData[i] -= mult*(0.5*(a2dData[i+3]-2048));
 					}
 					
+				}
+				*/
+				if (bit_is_set(device_configuration, 6))
+				{
+					a2dData[0] -= (0.5*(a2dData[3]-2048));
+					a2dData[1] -= (0.5*(a2dData[4]-2048));
+					a2dData[2] -= (0.25*(a2dData[5]-2048));
+				}else{
+					a2dData[0] -= (0.25*(a2dData[3]-2048));
+					a2dData[1] -= (0.25*(a2dData[4]-2048));
+					a2dData[2] -= (0.12*(a2dData[5]-2048));
 				}
 			}
 			
