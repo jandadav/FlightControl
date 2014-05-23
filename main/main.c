@@ -445,13 +445,13 @@ int __attribute__((noreturn)) main(void)
 				*/
 				if (bit_is_set(device_configuration, 6))
 				{
+					a2dData[0] -= (0.25*(a2dData[3]-2048));
+					a2dData[1] -= (1.2*(a2dData[4]-2048));
+					a2dData[2] -= (0.25*(a2dData[5]-2048));
+				}else{
 					a2dData[0] -= (0.5*(a2dData[3]-2048));
 					a2dData[1] -= (0.5*(a2dData[4]-2048));
 					a2dData[2] -= (0.25*(a2dData[5]-2048));
-				}else{
-					a2dData[0] -= (0.25*(a2dData[3]-2048));
-					a2dData[1] -= (0.25*(a2dData[4]-2048));
-					a2dData[2] -= (0.12*(a2dData[5]-2048));
 				}
 			}
 			
